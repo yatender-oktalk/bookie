@@ -33,7 +33,7 @@ defmodule Bookie.User.Model do
   This method will return user based on it's id
   """
   def get_user(id) do
-    Repo.get!(Bookie.User.Model, id)
+    Repo.get!(User, id)
   end
 
   @doc """
@@ -41,7 +41,7 @@ defmodule Bookie.User.Model do
   This method will raise error in case data not found
   """
   def get_user!(id) do
-    Repo.get!(Bookie.User.Model, id)
+    Repo.get!(User, id)
   end
 
   @doc """
@@ -50,15 +50,49 @@ defmodule Bookie.User.Model do
   those field in keyword list in params
   """
   def get_user_by(params) do
-    Repo.get_by(Bookie.User.Model, params)
+    Repo.get_by(User, params)
   end
 
-  def update_user(_id, _params) do
-    # check chengeset
+  def update(changeset, repo) do
+    IO.inspect(changeset)
+
+    changeset
+    |> put_password_hashing()
+    |> repo.update()
+  end
+
+  def put_password_hashing(changeset) do
+    case changeset.changes |> Map.has_key?(:password) do
+      true ->
+        changeset
+        |> Ecto.Changeset.put_change(
+          :hashed_password,
+          hashed_password(changeset.changes[:password])
+        )
+
+      false ->
+        changeset
+    end
   end
 
   def delete_user(_id) do
     # delete user
+  end
+
+  defp authenticate(user, password) do
+    case user do
+      nil -> false
+      _ -> Bcrypt.verify_pass(password, user.hashed_password)
+    end
+  end
+
+  def check_user_credentials(params, repo) do
+    user = repo.get_by(User, name: params["name"])
+
+    case authenticate(user, params["password"]) do
+      true -> {:ok, user}
+      _ -> {:error, "wrong credentials"}
+    end
   end
 
   defp hashed_password(password), do: Bcrypt.hash_pwd_salt(password)

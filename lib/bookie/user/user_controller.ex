@@ -26,30 +26,59 @@ defmodule Bookie.User.Controller do
   def create(conn, %{"user" => params}) do
     changeset = User.changeset(%User{}, params)
 
-    case User.create_user(changeset, Bookie.Repo) do
-      {:ok, changeset} ->
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(
-          201,
-          Poison.encode!(%{
-            resp:
-              "User created successfully, please start using apis with username and password in header!"
-          })
-        )
+    {code, status, msg} =
+      case User.create_user(changeset, Bookie.Repo) do
+        {:ok, changeset} ->
+          user_resp = %{
+            id: changeset.id,
+            name: changeset.name,
+            password: changeset.password
+          }
 
-      {:error, changeset} ->
-        error =
-          Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
+          {201, "success", user_resp}
 
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(400, Poison.encode!(error))
-    end
+        {:error, changeset} ->
+          error =
+            Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
+
+          {400, "failed", error}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
-  def update(conn, params) do
-    send_resp(conn, User.update_user(params, conn.body_params))
+  # id should be same which we are getting in header
+  # after validation we will put user struct in headers
+  def update(conn, %{"id" => id}) do
+    # will put user struct here
+    user_struct = conn.header
+    body_params = conn.body_params
+
+    user_id = user_struct.id
+
+    {code, status, msg} =
+      with true <- String.equivalent?(user_id, id),
+           changeset <- User.changeset(user_struct, body_params),
+           {:ok, changeset_updated} <- User.update(changeset, Bookie.Repo) do
+        user_resp = %{
+          id: changeset_updated.id,
+          name: changeset_updated.id,
+          password: changeset_updated.password
+        }
+
+        {200, "success", user_resp}
+      else
+        false ->
+          {403, "failed", "user not allowed to update this user's data"}
+
+        {:error, changeset} ->
+          error =
+            Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
+
+          {400, "failed", error}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
   def delete(conn, params) do
@@ -66,5 +95,16 @@ defmodule Bookie.User.Controller do
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(status, Poison.encode!(%{resp: response}))
+  end
+
+  def send_response(conn, code, status, msg) do
+    response = %{
+      status: status,
+      resp: msg
+    }
+
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(code, Poison.encode!(response))
   end
 end
