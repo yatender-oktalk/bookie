@@ -33,14 +33,28 @@ defmodule Bookie.Repo.Migrations.UserAuthorBook do
     end
 
     create table(:authors_books, primary_key: false) do
-      add(:book_id, references("books", type: :uuid))
-      add(:author_id, references("authors", type: :uuid))
+      add(:book_id, references("books", type: :uuid, on_delete: :delete_all))
+      add(:author_id, references("authors", type: :uuid, on_delete: :delete_all))
     end
 
+    create(index(:authors_books, [:book_id]))
+    create(index(:authors_books, [:author_id]))
+
+    create(
+      unique_index(:authors_books, [:book_id, :author_id], name: :book_id_author_id_unique_index)
+    )
+
     create table(:users_methods, primary_key: false) do
-      add(:user_id, references("users", type: :uuid))
-      add(:method_id, references("methods", type: :uuid))
+      add(:user_id, references("users", type: :uuid, on_delete: :delete_all))
+      add(:method_id, references("methods", type: :uuid, on_delete: :delete_all))
     end
+
+    create(index(:users_methods, [:method_id]))
+    create(index(:users_methods, [:user_id]))
+
+    create(
+      unique_index(:users_methods, [:user_id, :method_id], name: :user_id_method_id_unique_index)
+    )
   end
 
   def down do
