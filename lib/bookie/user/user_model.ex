@@ -9,7 +9,11 @@ defmodule Bookie.User.Model do
     field(:password, :string, virtual: true)
     timestamps()
 
-    many_to_many(:methods, Bookie.Method.Model, join_through: "users_methods", on_replace: :delete)
+    many_to_many(:methods, Bookie.Method.Model,
+      join_through: "users_methods",
+      join_keys: [user_id: :id, method_id: :id],
+      on_replace: :delete
+    )
   end
 
   @required_fields ~w(name password)
@@ -96,8 +100,11 @@ defmodule Bookie.User.Model do
   end
 
   def changeset_update_methods(%User{} = user, methods) do
+    IO.inspect(methods)
+
     user
     |> cast(%{}, @required_fields)
+    |> Repo.preload(:methods)
     |> put_assoc(:methods, methods)
   end
 

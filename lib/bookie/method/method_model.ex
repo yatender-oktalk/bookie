@@ -8,7 +8,11 @@ defmodule Bookie.Method.Model do
     field(:method, :string, required: true)
     timestamps()
 
-    many_to_many(:users, Bookie.User.Model, join_through: "users_methods", on_replace: :delete)
+    many_to_many(:users, Bookie.User.Model,
+      join_through: "users_methods",
+      join_keys: [user_id: :id, method_id: :id],
+      on_replace: :delete
+    )
   end
 
   @required_fields ~w(method function)
