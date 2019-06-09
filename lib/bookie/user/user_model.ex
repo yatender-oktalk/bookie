@@ -37,7 +37,7 @@ defmodule Bookie.User.Model do
   This method will return user based on it's id
   """
   def get_user(id) do
-    Repo.get(User, id) |> Repo.preload(:methods)
+    Repo.get(User, id)
   end
 
   def get_user_methods(id) do
@@ -62,8 +62,6 @@ defmodule Bookie.User.Model do
   end
 
   def update(changeset, repo) do
-    IO.inspect(changeset)
-
     changeset
     |> put_password_hashing()
     |> repo.update()
@@ -83,8 +81,8 @@ defmodule Bookie.User.Model do
     end
   end
 
-  def delete_user(id) do
-    Repo.delete(%User{}, id)
+  def delete_user(user, repo) do
+    repo.delete(user)
   end
 
   defp authenticate(user, password) do
@@ -104,8 +102,6 @@ defmodule Bookie.User.Model do
   end
 
   def changeset_update_methods(%User{} = user, methods) do
-    IO.inspect(methods)
-
     user
     |> cast(%{}, @required_fields)
     |> Repo.preload(:methods)
@@ -113,28 +109,4 @@ defmodule Bookie.User.Model do
   end
 
   def hashed_password(password), do: Bcrypt.hash_pwd_salt(password)
-
-  # # Create the user. Note that the (empty) `organizations` field has to be preloaded.
-  # user_map = %{name: "User 1", password: "password"}
-
-  # changeset =
-  #   User.changeset(%User{}, user_map)
-  #   |> Ecto.Changeset.put_change(
-  #     :hashed_password,
-  #     User.hashed_password(changeset.changes[:password])
-  #   )
-
-  # user =
-  #   Repo.insert!(changeset)
-  #   |> Repo.preload(:methods)
-
-  # # Do the same for the organization:
-  # org = %Bookie.Method.Model{function: "org1", method: "Organization 1"}
-  # org = Repo.insert!(org) |> Repo.preload(:users)
-
-  # # Update one of the two of them:
-  # changeset = Ecto.Changeset.change(user) |> Ecto.Changeset.put_assoc(:methods, [org])
-
-  # # "When you save this change to the user, the join table will have its foreign keys populated in both directions."
-  # Repo.update!(changeset)
 end

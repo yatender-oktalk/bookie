@@ -84,7 +84,21 @@ defmodule Bookie.User.Controller do
   end
 
   def delete(conn, params) do
-    send_resp(conn, User.delete_user(params["id"]))
+    user = User.get_user(params["id"])
+
+    {code, status, msg} =
+      case User.delete_user(user, Bookie.Repo) do
+        {:ok, _ch} ->
+          {200, "success", "success delete"}
+
+        {:error, changeset} ->
+          error =
+            Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
+
+          {400, "error", error}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
   def user_method_add(conn, params) do
