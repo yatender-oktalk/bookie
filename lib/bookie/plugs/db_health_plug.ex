@@ -16,7 +16,7 @@ defmodule Plugs.DBHealthPlug do
   """
   def call(conn, _defaults) do
     # Health Controller is checking for health of our db.
-    case Bookie.Health.Controller.mysql_health() do
+    case Bookie.Health.Controller.db_health() do
       :down ->
         conn
         |> send_resp(503, Poison.encode!(%{message: "database not available"}))
