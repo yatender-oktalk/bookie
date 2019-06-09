@@ -8,7 +8,7 @@ defmodule Bookie.Method.Controller do
     offset = params["offset"] || 0
 
     methods = Method.get_methods(limit, offset)
-    {code, status, msg} = {200, "success", methods}
+    {code, status, msg} = {HTTPCodes.ok(), "success", methods}
 
     send_response(conn, code, status, msg)
   end
@@ -19,10 +19,10 @@ defmodule Bookie.Method.Controller do
     {code, status, msg} =
       case Method.parse_method_for_model(method) do
         {:ok, method} ->
-          {200, "success", method}
+          {HTTPCodes.ok(), "success", method}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -43,7 +43,7 @@ defmodule Bookie.Method.Controller do
               &BookieWeb.ErrorHelpers.translate_error/1
             )
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -56,13 +56,13 @@ defmodule Bookie.Method.Controller do
       with method_struct <- Method.get_method(id),
            changeset <- Method.changeset(method_struct, body_params),
            {:ok, _changeset} <- Method.update_method(changeset, Repo) do
-        {200, "success", "method updated"}
+        {HTTPCodes.ok(), "success", "method updated"}
       else
         {:error, changeset} ->
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -74,10 +74,10 @@ defmodule Bookie.Method.Controller do
     {code, status, msg} =
       case Method.delete_method(method, Bookie.Repo) do
         {:ok, _ch} ->
-          {200, "success", "success delete"}
+          {HTTPCodes.ok(), "success", "success delete"}
 
         {:error, changeset} ->
-          {400, "error", changeset}
+          {HTTPCodes.bad_request(), "error", changeset}
       end
 
     send_response(conn, code, status, msg)
@@ -89,10 +89,10 @@ defmodule Bookie.Method.Controller do
     {code, status, msg} =
       case Method.parse_method_with_users(method) do
         {:ok, method} ->
-          {200, "success", method}
+          {HTTPCodes.ok(), "success", method}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)

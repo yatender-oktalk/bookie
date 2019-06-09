@@ -8,7 +8,7 @@ defmodule Bookie.Author.Controller do
     offset = params["offset"] || 0
 
     authors = Author.get_authors(limit, offset)
-    {code, status, msg} = {200, "success", authors}
+    {code, status, msg} = {HTTPCodes.ok(), "success", authors}
 
     send_response(conn, code, status, msg)
   end
@@ -21,10 +21,10 @@ defmodule Bookie.Author.Controller do
         {:ok, author} ->
           parsed_author = Author.extract_author_data(author)
 
-          {200, "success", parsed_author}
+          {HTTPCodes.ok(), "success", parsed_author}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -44,7 +44,7 @@ defmodule Bookie.Author.Controller do
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -71,13 +71,13 @@ defmodule Bookie.Author.Controller do
            changeset <- Author.changeset(author_struct, body_params),
            {:ok, changeset} <- Author.update_author(changeset, Bookie.Repo) do
         parsed_author = Author.extract_author_data(changeset)
-        {200, "success", parsed_author}
+        {HTTPCodes.ok(), "success", parsed_author}
       else
         false ->
-          {403, "failed", "author not allowed to update this author's data"}
+          {HTTPCodes.no_permission(), "failed", "author not allowed to update this author's data"}
 
         {:error, changeset} ->
-          {400, "failed", changeset}
+          {HTTPCodes.bad_request(), "failed", changeset}
       end
 
     send_response(conn, code, status, msg)
@@ -89,13 +89,13 @@ defmodule Bookie.Author.Controller do
     {code, status, msg} =
       case Author.delete_author(author, Bookie.Repo) do
         {:ok, _ch} ->
-          {200, "success", "success delete"}
+          {HTTPCodes.ok(), "success", "success delete"}
 
         {:error, changeset} ->
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "error", error}
+          {HTTPCodes.bad_request(), "error", error}
       end
 
     send_response(conn, code, status, msg)
@@ -108,10 +108,10 @@ defmodule Bookie.Author.Controller do
     {code, status, msg} =
       case AuthorBook.map_author_book(author, book) do
         {:ok, _author} ->
-          {200, "success", "Successfully Mapped book with author"}
+          {HTTPCodes.ok(), "success", "Successfully Mapped book with author"}
 
         {:error, _changeset} ->
-          {400, "failed", "failed to map book with author"}
+          {HTTPCodes.bad_request(), "failed", "failed to map book with author"}
       end
 
     send_response(conn, code, status, msg)
@@ -125,10 +125,10 @@ defmodule Bookie.Author.Controller do
     {code, status, msg} =
       case AuthorBook.delete_author_book(author, book) do
         {:ok, _author} ->
-          {200, "success", "Successfully deleted book from author"}
+          {HTTPCodes.ok(), "success", "Successfully deleted book from author"}
 
         {:error, _changeset} ->
-          {400, "failed", "failed to deleted book with author"}
+          {HTTPCodes.bad_request(), "failed", "failed to deleted book with author"}
       end
 
     send_response(conn, code, status, msg)
@@ -140,10 +140,10 @@ defmodule Bookie.Author.Controller do
     {code, status, msg} =
       case Author.parse_author(author) do
         {:ok, author} ->
-          {200, "success", author}
+          {HTTPCodes.ok(), "success", author}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)

@@ -1,20 +1,16 @@
 defmodule Bookie.User.Controller do
   use Bookie, :controller
-
-  alias Bookie.User, as: User
-  alias Bookie.Method, as: Method
-  alias Bookie.UserMethod, as: UserMethod
+  alias Bookie.{User, Method, UserMethod}
 
   @doc """
   API to get all users with limit & offset
-
   """
   def index(conn, params) do
     limit = params["limit"] || 20
     offset = params["offset"] || 0
 
     users = User.get_users(limit, offset)
-    {code, status, msg} = {200, "success", users}
+    {code, status, msg} = {HTTPCodes.ok(), "success", users}
 
     send_response(conn, code, status, msg)
   end
@@ -29,10 +25,10 @@ defmodule Bookie.User.Controller do
     {code, status, msg} =
       case User.parse_user_no_method(user) do
         {:ok, user} ->
-          {200, "success", user}
+          {HTTPCodes.ok(), "success", user}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -60,7 +56,7 @@ defmodule Bookie.User.Controller do
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -86,16 +82,16 @@ defmodule Bookie.User.Controller do
           password: changeset_updated.password
         }
 
-        {200, "success", user_resp}
+        {HTTPCodes.ok(), "success", user_resp}
       else
         false ->
-          {403, "failed", "user not allowed to update this user's data"}
+          {HTTPCodes.no_permission(), "failed", "user not allowed to update this user's data"}
 
         {:error, changeset} ->
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -110,13 +106,13 @@ defmodule Bookie.User.Controller do
     {code, status, msg} =
       case User.delete_user(user, Bookie.Repo) do
         {:ok, _ch} ->
-          {200, "success", "success delete"}
+          {HTTPCodes.ok(), "success", "success delete"}
 
         {:error, changeset} ->
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "error", error}
+          {HTTPCodes.bad_request(), "error", error}
       end
 
     send_response(conn, code, status, msg)
@@ -132,10 +128,10 @@ defmodule Bookie.User.Controller do
     {code, status, msg} =
       case UserMethod.map_user_method(user, method) do
         {:ok, _user} ->
-          {200, "success", "Successfully Mapped method with user"}
+          {HTTPCodes.ok(), "success", "Successfully Mapped method with user"}
 
         {:error, _changeset} ->
-          {400, "failed", "failed to map metho with user"}
+          {HTTPCodes.bad_request(), "failed", "failed to map metho with user"}
       end
 
     send_response(conn, code, status, msg)
@@ -154,25 +150,28 @@ defmodule Bookie.User.Controller do
     {code, status, msg} =
       case UserMethod.delete_user_method(user, method) do
         {:ok, _user} ->
-          {200, "success", "Successfully delete method from user"}
+          {HTTPCodes.ok(), "success", "Successfully delete method from user"}
 
         {:error, _changeset} ->
-          {400, "failed", "failed to delete method with user"}
+          {HTTPCodes.bad_request(), "failed", "failed to delete method with user"}
       end
 
     send_response(conn, code, status, msg)
   end
 
+  @doc """
+  method getting used to map user with method
+  """
   def user_methods(conn, params) do
     user = User.get_user_methods(params["id"])
 
     {code, status, msg} =
       case User.parse_user(user) do
         {:ok, user} ->
-          {200, "success", user}
+          {HTTPCodes.ok(), "success", user}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)

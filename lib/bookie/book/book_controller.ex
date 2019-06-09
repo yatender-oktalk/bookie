@@ -8,7 +8,7 @@ defmodule Bookie.Book.Controller do
     offset = params["offset"] || 0
 
     books = Book.get_books(limit, offset)
-    {code, status, msg} = {200, "success", books}
+    {code, status, msg} = {HTTPCodes.ok(), "success", books}
 
     send_response(conn, code, status, msg)
   end
@@ -19,10 +19,10 @@ defmodule Bookie.Book.Controller do
     {code, status, msg} =
       case Book.parse_book_for_model(book) do
         {:ok, book} ->
-          {200, "success", book}
+          {HTTPCodes.ok(), "success", book}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -51,7 +51,7 @@ defmodule Bookie.Book.Controller do
               &BookieWeb.ErrorHelpers.translate_error/1
             )
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -65,13 +65,13 @@ defmodule Bookie.Book.Controller do
            changeset <- Book.changeset(book_struct, body_params),
            {:ok, changeset} <- Book.update_book(changeset, Bookie.Repo) do
         updated_book = Book.extract_book_data(changeset)
-        {200, "success", updated_book}
+        {HTTPCodes.ok(), "success", updated_book}
       else
         {:error, changeset} ->
           error =
             Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
 
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
@@ -83,10 +83,10 @@ defmodule Bookie.Book.Controller do
     {code, status, msg} =
       case Book.delete_book(book, Bookie.Repo) do
         {:ok, _ch} ->
-          {200, "success", "success delete"}
+          {HTTPCodes.ok(), "success", "success delete"}
 
         {:error, changeset} ->
-          {400, "error", changeset}
+          {HTTPCodes.bad_request(), "error", changeset}
       end
 
     send_response(conn, code, status, msg)
@@ -98,10 +98,10 @@ defmodule Bookie.Book.Controller do
     {code, status, msg} =
       case Book.parse_book_with_authors(book) do
         {:ok, book} ->
-          {200, "success", book}
+          {HTTPCodes.ok(), "success", book}
 
         {:error, error} ->
-          {400, "failed", error}
+          {HTTPCodes.bad_request(), "failed", error}
       end
 
     send_response(conn, code, status, msg)
