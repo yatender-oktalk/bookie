@@ -101,6 +101,9 @@ defmodule Bookie.User.Controller do
     send_response(conn, code, status, msg)
   end
 
+  @doc """
+  Method to delete a particular user
+  """
   def delete(conn, %{"id" => id}) do
     user = User.get_user!(id)
 
@@ -119,6 +122,9 @@ defmodule Bookie.User.Controller do
     send_response(conn, code, status, msg)
   end
 
+  @doc """
+  method to add user with method
+  """
   def user_method_add(conn, params) do
     user = User.get_user_methods(params["id"])
     method = Method.get_method_users(params["method_id"])
@@ -135,6 +141,9 @@ defmodule Bookie.User.Controller do
     send_response(conn, code, status, msg)
   end
 
+  @doc """
+  method to remove method from user
+  """
   def user_method_remove(conn, params) do
     # get user with methods
     user = User.get_user_methods(params["id"])
