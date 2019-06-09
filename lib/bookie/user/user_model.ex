@@ -113,7 +113,7 @@ defmodule Bookie.User do
   end
 
   def parse_user(nil) do
-    {:erorr, "user not found"}
+    {:error, "user not found"}
   end
 
   def parse_user(user) do
@@ -130,7 +130,7 @@ defmodule Bookie.User do
   end
 
   def parse_user_no_method(nil) do
-    {:erorr, "user not found"}
+    {:error, "user not found"}
   end
 
   def parse_user_no_method(user) do

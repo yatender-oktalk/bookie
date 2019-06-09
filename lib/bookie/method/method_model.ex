@@ -106,7 +106,7 @@ defmodule Bookie.Method do
   end
 
   def parse_method_with_users(method) when method in [nil, []] do
-    {:erorr, "method not found"}
+    {:error, "method not found"}
   end
 
   def parse_method_with_users(method) do

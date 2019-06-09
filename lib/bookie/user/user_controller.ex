@@ -5,6 +5,10 @@ defmodule Bookie.User.Controller do
   alias Bookie.Method, as: Method
   alias Bookie.UserMethod, as: UserMethod
 
+  @doc """
+  API to get all users with limit & offset
+
+  """
   def index(conn, params) do
     limit = params["limit"] || 20
     offset = params["offset"] || 0
@@ -15,6 +19,10 @@ defmodule Bookie.User.Controller do
     send_response(conn, code, status, msg)
   end
 
+  @doc """
+  This method gives back the single user data
+  expecting user id in path params
+  """
   def get_user(conn, %{"id" => id}) do
     user = User.get_user(id)
 
@@ -31,16 +39,8 @@ defmodule Bookie.User.Controller do
   end
 
   @doc """
-  sample request to create user
-  POST {hostname}/api/users
-  request body:
-
-  {
-    "user": {
-      "name": "yatender",
-      "password": "password"
-    }
-  }
+  create method expecting in params all the details required to create user.
+  Please check github wiki for documentation about using the APIs
   """
   def create(conn, %{"user" => params}) do
     changeset = User.changeset(%User{}, params)
