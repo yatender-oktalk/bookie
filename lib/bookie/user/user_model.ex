@@ -78,6 +78,11 @@ defmodule Bookie.User do
     |> repo.update()
   end
 
+  @doc """
+  password hashing and then returning the changeset while updating
+  in case we are not updating the password we are ignoring and not
+  updating it into the changeset otherwise it'll lead to corrupt values.
+  """
   def put_password_hashing(changeset) do
     case changeset.changes |> Map.has_key?(:password) do
       true ->
@@ -96,6 +101,11 @@ defmodule Bookie.User do
     repo.delete(changeset)
   end
 
+  @doc """
+  using bcrypt module for hasing the password for one way
+  password hashing, all configs in bcrypt are default no change
+  in salt aur logs module has been made it's by defualt as it is.
+  """
   defp authenticate(user, password) do
     case user do
       nil -> false
@@ -103,6 +113,10 @@ defmodule Bookie.User do
     end
   end
 
+  @doc """
+  This method to check the user credentials. if user exists in DB and password is valid
+  Then we are passing the user otherwise it'll throw error.
+  """
   def check_user_credentials(params, repo) do
     user = repo.get_by(User, id: params["id"])
 
@@ -156,5 +170,8 @@ defmodule Bookie.User do
     end
   end
 
+  @doc """
+  Method to hash password using Bcrypt module
+  """
   def hashed_password(password), do: Bcrypt.hash_pwd_salt(password)
 end
