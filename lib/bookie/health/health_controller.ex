@@ -5,7 +5,13 @@ defmodule Bookie.Health.Controller do
   use Bookie, :controller
 
   def index(conn, _params) do
-    send_resp(conn, {:ok, "health is fine"})
+    data = %{
+      version: Application.spec(:bookie, :vsn) |> to_string(),
+      application_health: "health is fine, application is up and accessible",
+      database_health: mysql_health()
+    }
+
+    send_resp(conn, {:ok, data})
   end
 
   defp send_resp(conn, res) do

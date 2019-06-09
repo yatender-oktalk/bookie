@@ -1,4 +1,10 @@
 defmodule BookieWeb.Router do
+  @moduledoc """
+  This module is the main entry point for all requests
+  If you want to create new resources just add under web or api scope
+  and declare their modules at respective places.
+  """
+
   use BookieWeb, :router
 
   pipeline :browser do
@@ -9,6 +15,8 @@ defmodule BookieWeb.Router do
     plug(:put_secure_browser_headers)
   end
 
+  # A general pipeline built only for api calls here we will do all authrization and authentication check
+  # This pipeline will make sure that request doesn't go inside modules
   pipeline :api do
     plug(:accepts, ["json"])
     plug(Plugs.DBHealthPlug)
@@ -24,6 +32,7 @@ defmodule BookieWeb.Router do
   end
 
   # Other scopes may use custom stacks.
+  # This scope is specifically built for api calls only
   scope "/api", Bookie do
     pipe_through(:api)
 
