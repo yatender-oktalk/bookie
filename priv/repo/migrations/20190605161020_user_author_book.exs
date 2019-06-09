@@ -52,9 +52,7 @@ defmodule Bookie.Repo.Migrations.UserAuthorBook do
     create(index(:users_methods, [:method_id]))
     create(index(:users_methods, [:user_id]))
 
-    create(
-      unique_index(:users_methods, [:user_id, :method_id], name: :user_id_method_id_unique_index)
-    )
+    create(unique_index(:users_methods, [:user_id, :method_id]))
   end
 
   def down do

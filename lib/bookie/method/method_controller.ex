@@ -1,10 +1,31 @@
 defmodule Bookie.Method.Controller do
   use Bookie, :controller
 
-  alias Bookie.Method.Model, as: Method
+  alias Bookie.Method, as: Method
 
   def index(conn, params) do
-    send_resp(conn, Method.get_method(params["id"]))
+    limit = params["limit"] || 20
+    offset = params["offset"] || 0
+
+    methods = Method.get_methods(limit, offset)
+    {code, status, msg} = {200, "success", methods}
+
+    send_response(conn, code, status, msg)
+  end
+
+  def get_method(conn, %{"id" => id}) do
+    method = Method.get_method(id)
+
+    {code, status, msg} =
+      case Method.parse_method_for_model(method) do
+        {:ok, method} ->
+          {200, "success", method}
+
+        {:error, error} ->
+          {400, "failed", error}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
   def create(conn, %{"method" => params}) do
@@ -60,19 +81,36 @@ defmodule Bookie.Method.Controller do
   end
 
   def delete(conn, params) do
-    send_resp(conn, Method.delete_method(params["id"]))
-  end
+    method = Method.get_method(params["id"])
 
-  defp send_resp(conn, res) do
-    {status, response} =
-      case res do
-        {:ok, resp} -> {200, resp}
-        {:error, resp} -> {400, resp}
+    {code, status, msg} =
+      case Method.delete_method(method, Bookie.Repo) do
+        {:ok, _ch} ->
+          {200, "success", "success delete"}
+
+        {:error, changeset} ->
+          error =
+            Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
+
+          {400, "error", error}
       end
 
-    conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(status, Poison.encode!(%{resp: response}))
+    send_response(conn, code, status, msg)
+  end
+
+  def method_users(conn, params) do
+    method = Method.get_method_users(params["id"])
+
+    {code, status, msg} =
+      case Method.parse_method_with_users(method) do
+        {:ok, method} ->
+          {200, "success", method}
+
+        {:error, error} ->
+          {400, "failed", error}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
   def send_response(conn, code, status, msg) do

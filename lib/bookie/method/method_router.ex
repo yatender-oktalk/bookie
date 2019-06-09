@@ -7,7 +7,8 @@ defmodule Bookie.Method.Router do
 
   get("/", Controller, :index)
   post("/", Controller, :create)
-  get("/:id", Controller, :index)
+  get("/:id", Controller, :get_method)
   put("/:id", Controller, :update)
   delete("/:id", Controller, :delete)
+  get("/:id/users", Controller, :method_users)
 end

@@ -1,11 +1,11 @@
-defmodule Bookie.UserMethod.Model do
+defmodule Bookie.UserMethod do
   use Bookie, :model
 
   use Ecto.Schema
 
   schema "users_methods" do
-    belongs_to(:users, Bookie.User.Model, type: :binary_id)
-    belongs_to(:methods, Bookie.Method.Model, type: :binary_id)
+    belongs_to(:users, Bookie.User, type: :binary_id, foreign_key: :user_id)
+    belongs_to(:methods, Bookie.Method, type: :binary_id, foreign_key: :method_id)
   end
 
   def map_user_method(user, methods) do

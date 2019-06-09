@@ -1,7 +1,8 @@
-defmodule Bookie.User.Model do
+defmodule Bookie.User do
   use Bookie, :model
 
-  alias Bookie.User.Model, as: User
+  alias Bookie.User, as: User
+  alias Bookie.Method, as: Method
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "users" do
     field(:name, :string, required: true)
@@ -9,9 +10,8 @@ defmodule Bookie.User.Model do
     field(:password, :string, virtual: true)
     timestamps()
 
-    many_to_many(:methods, Bookie.Method.Model,
+    many_to_many(:methods, Bookie.Method,
       join_through: "users_methods",
-      join_keys: [user_id: :id, method_id: :id],
       on_replace: :delete
     )
   end
@@ -31,6 +31,17 @@ defmodule Bookie.User.Model do
     changeset
     |> Ecto.Changeset.put_change(:hashed_password, hashed_password(changeset.changes[:password]))
     |> repo.insert()
+  end
+
+  def get_users(limit, offset) do
+    query =
+      from(u in User,
+        limit: ^limit,
+        offset: ^offset,
+        select: %{id: u.id, inserted_at: u.inserted_at, name: u.name}
+      )
+
+    Repo.all(query)
   end
 
   @doc """
@@ -101,11 +112,48 @@ defmodule Bookie.User.Model do
     end
   end
 
-  def changeset_update_methods(%User{} = user, methods) do
-    user
-    |> cast(%{}, @required_fields)
-    |> Repo.preload(:methods)
-    |> put_assoc(:methods, methods)
+  def parse_user(nil) do
+    {:erorr, "user not found"}
+  end
+
+  def parse_user(user) do
+    methods = Method.parse_method(user.methods)
+
+    parsed_user = %{
+      id: user.id,
+      name: user.name,
+      insert_at: user.inserted_at,
+      methods: methods
+    }
+
+    {:ok, parsed_user}
+  end
+
+  def parse_user_no_method(nil) do
+    {:erorr, "user not found"}
+  end
+
+  def parse_user_no_method(user) do
+    parsed_user = %{
+      id: user.id,
+      name: user.name,
+      insert_at: user.inserted_at
+    }
+
+    {:ok, parsed_user}
+  end
+
+  def parse_user_for_method(users) when is_list(users) do
+    users
+    |> Enum.map(&parse_user_for_method/1)
+    |> Enum.reject(fn user -> user == %{} end)
+  end
+
+  def parse_user_for_method(user) do
+    case parse_user_no_method(user) do
+      {:ok, user} -> user
+      _ -> %{}
+    end
   end
 
   def hashed_password(password), do: Bcrypt.hash_pwd_salt(password)

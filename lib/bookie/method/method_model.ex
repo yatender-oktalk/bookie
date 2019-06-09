@@ -1,16 +1,16 @@
-defmodule Bookie.Method.Model do
+defmodule Bookie.Method do
   use Bookie, :model
-  alias Bookie.Method.Model, as: Method
-  alias Bookie.User.Model, as: User
+  alias Bookie.Method, as: Method
+  alias Bookie.User, as: User
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "methods" do
     field(:function, :string, required: true)
     field(:method, :string, required: true)
     timestamps()
 
-    many_to_many(:users, Bookie.User.Model,
+    many_to_many(:users, Bookie.User,
       join_through: "users_methods",
-      join_keys: [user_id: :id, method_id: :id],
       on_replace: :delete
     )
   end
@@ -22,6 +22,53 @@ defmodule Bookie.Method.Model do
   """
   def get_method(id) do
     Repo.get!(Method, id)
+  end
+
+  def get_methods(limit, offset) do
+    query =
+      from(u in Method,
+        limit: ^limit,
+        offset: ^offset,
+        select: %{id: u.id, inserted_at: u.inserted_at, function: u.function, method: u.method}
+      )
+
+    Repo.all(query)
+  end
+
+  def get_method_users(id) do
+    Repo.get(Method, id) |> Repo.preload(:users)
+  end
+
+  def parse_method(methods) when methods in [nil, []] do
+    []
+  end
+
+  def parse_method(methods) when is_list(methods) do
+    methods
+    |> Enum.map(fn method ->
+      parse_method(method)
+    end)
+  end
+
+  def parse_method(method) do
+    %{
+      function: method.function,
+      id: method.id,
+      method: method.method
+    }
+  end
+
+  def parse_method_for_model(methods) when methods in [nil, []] do
+    {:error, "method not found"}
+  end
+
+  def parse_method_for_model(methods) when is_list(methods) do
+    resp = methods |> Enum.map(&parse_method/1)
+    {:ok, resp}
+  end
+
+  def parse_method_for_model(method) do
+    {:ok, parse_method(method)}
   end
 
   def changeset(model, params \\ :empty) do
@@ -37,7 +84,7 @@ defmodule Bookie.Method.Model do
   This method will raise error in case data not found
   """
   def get_method!(id) do
-    Repo.get!(Bookie.Method.Model, id)
+    Repo.get!(Bookie.Method, id)
   end
 
   @doc """
@@ -46,7 +93,7 @@ defmodule Bookie.Method.Model do
   those field in keyword list in params
   """
   def get_method_by(params) do
-    Repo.get_by(Bookie.Method.Model, params)
+    Repo.get_by(Bookie.Method, params)
   end
 
   def create_method(changeset, repo) do
@@ -58,24 +105,28 @@ defmodule Bookie.Method.Model do
     repo.insert(changeset, repo)
   end
 
-  def delete_method(_id) do
-    # delete Method
+  def delete_method(method, repo) do
+    repo.delete(method)
   end
 
-  def upsert_user_methods(user, method_ids) when is_list(method_ids) do
-    methods =
-      Method
-      |> where([method], method.id in ^method_ids)
-      |> Repo.all()
+  def parse_method_with_users(method) when method in [nil, []] do
+    {:erorr, "method not found"}
+  end
 
-    with {:ok, _struct} <-
-           user
-           |> User.changeset_update_methods(methods)
-           |> Repo.update() do
-      {:ok, User.get_user(user.id)}
-    else
-      error ->
-        error
-    end
+  def parse_method_with_users(method) do
+    {:ok, users} =
+      case User.parse_user_for_method(method.users) do
+        {:ok, users} -> users
+        _ -> {:ok, []}
+      end
+
+    parsed_user = %{
+      id: method.id,
+      function: method.function,
+      method: method.method,
+      users: users
+    }
+
+    {:ok, parsed_user}
   end
 end

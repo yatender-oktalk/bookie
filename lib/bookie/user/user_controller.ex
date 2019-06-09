@@ -1,16 +1,33 @@
 defmodule Bookie.User.Controller do
   use Bookie, :controller
 
-  alias Bookie.User.Model, as: User
-  alias Bookie.Method.Model, as: Method
-  alias Bookie.UserMethod.Model, as: UserMethod
+  alias Bookie.User, as: User
+  alias Bookie.Method, as: Method
+  alias Bookie.UserMethod, as: UserMethod
 
   def index(conn, params) do
-    send_resp(conn, User.get_user(params["id"]))
+    limit = params["limit"] || 20
+    offset = params["offset"] || 0
+
+    users = User.get_users(limit, offset)
+    {code, status, msg} = {200, "success", users}
+
+    send_response(conn, code, status, msg)
   end
 
   def get_user(conn, %{"id" => id}) do
-    send_resp(conn, User.get_user(id))
+    user = User.get_user(id)
+
+    {code, status, msg} =
+      case User.parse_user_no_method(user) do
+        {:ok, user} ->
+          {200, "success", user}
+
+        {:error, error} ->
+          {400, "failed", error}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
   @doc """
@@ -102,8 +119,8 @@ defmodule Bookie.User.Controller do
   end
 
   def user_method_add(conn, params) do
-    user = User.get_user(params["id"])
-    method = Method.get_method(params["method_id"])
+    user = User.get_user_methods(params["id"])
+    method = Method.get_method_users(params["method_id"])
 
     {code, status, msg} =
       case UserMethod.map_user_method(user, method) do
@@ -136,19 +153,22 @@ defmodule Bookie.User.Controller do
     send_response(conn, code, status, msg)
   end
 
-  defp send_resp(conn, res) do
-    {status, response} =
-      case res do
-        {:ok, resp} -> {200, resp}
-        {:error, resp} -> {400, resp}
+  def user_methods(conn, params) do
+    user = User.get_user_methods(params["id"])
+
+    {code, status, msg} =
+      case User.parse_user(user) do
+        {:ok, user} ->
+          {200, "success", user}
+
+        {:error, error} ->
+          {400, "failed", error}
       end
 
-    conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(status, Poison.encode!(%{resp: response}))
+    send_response(conn, code, status, msg)
   end
 
-  def send_response(conn, code, status, msg) do
+  defp send_response(conn, code, status, msg) do
     response = %{
       status: status,
       resp: msg
