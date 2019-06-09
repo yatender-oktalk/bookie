@@ -70,7 +70,7 @@ defmodule Bookie.User.Controller do
   # after validation we will put user struct in headers
   def update(conn, %{"id" => id}) do
     # will put user struct here
-    user_struct = conn.header
+    user_struct = User.get_user(id)
     body_params = conn.body_params
 
     user_id = user_struct.id
@@ -100,8 +100,8 @@ defmodule Bookie.User.Controller do
     send_response(conn, code, status, msg)
   end
 
-  def delete(conn, params) do
-    user = User.get_user(params["id"])
+  def delete(conn, %{"id" => id}) do
+    user = User.get_user!(id)
 
     {code, status, msg} =
       case User.delete_user(user, Bookie.Repo) do

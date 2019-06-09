@@ -11,6 +11,6 @@ defmodule Bookie.User.Router do
   put("/:id", Controller, :update)
   delete("/:id", Controller, :delete)
   get("/:id/methods", Controller, :user_methods)
-  put("/:id/method/:method_id", Controller, :user_method_add)
-  delete("/:id/method/:method_id", Controller, :user_method_remove)
+  put("/:id/methods/:method_id", Controller, :user_method_add)
+  delete("/:id/methods/:method_id", Controller, :user_method_remove)
 end

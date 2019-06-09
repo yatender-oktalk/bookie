@@ -10,4 +10,5 @@ defmodule Bookie.Book.Router do
   get("/:id", Controller, :index)
   put("/:id", Controller, :update)
   delete("/:id", Controller, :delete)
+  get("/:id/authors", Controller, :book_authors)
 end

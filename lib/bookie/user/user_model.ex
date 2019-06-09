@@ -92,8 +92,8 @@ defmodule Bookie.User do
     end
   end
 
-  def delete_user(user, repo) do
-    repo.delete(user)
+  def delete_user(changeset, repo) do
+    repo.delete(changeset)
   end
 
   defp authenticate(user, password) do

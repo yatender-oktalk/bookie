@@ -1,7 +1,6 @@
 defmodule Bookie.Method do
   use Bookie, :model
-  alias Bookie.Method, as: Method
-  alias Bookie.User, as: User
+  alias Bookie.{Method, User}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "methods" do
@@ -9,14 +8,12 @@ defmodule Bookie.Method do
     field(:method, :string, required: true)
     timestamps()
 
-    many_to_many(:users, Bookie.User,
-      join_through: "users_methods",
-      on_replace: :delete
-    )
+    many_to_many(:users, Bookie.User, join_through: "users_methods", on_replace: :delete)
   end
 
   @required_fields ~w(method function)
   @optional_fields ~w()
+
   @doc """
   This method will return Method based on it's id
   """
@@ -98,15 +95,14 @@ defmodule Bookie.Method do
 
   def create_method(changeset, repo) do
     repo.insert(changeset)
-    # validate with changeset
   end
 
   def update_method(changeset, repo) do
-    repo.insert(changeset, repo)
+    repo.insert(changeset)
   end
 
-  def delete_method(method, repo) do
-    repo.delete(method)
+  def delete_method(changeset, repo) do
+    repo.delete(changeset)
   end
 
   def parse_method_with_users(method) when method in [nil, []] do
@@ -114,11 +110,7 @@ defmodule Bookie.Method do
   end
 
   def parse_method_with_users(method) do
-    {:ok, users} =
-      case User.parse_user_for_method(method.users) do
-        {:ok, users} -> users
-        _ -> {:ok, []}
-      end
+    users = User.parse_user_for_method(method.users)
 
     parsed_user = %{
       id: method.id,

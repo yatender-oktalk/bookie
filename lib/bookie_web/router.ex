@@ -27,6 +27,7 @@ defmodule BookieWeb.Router do
     forward("/health", Health.Router)
     forward("/users", User.Router)
     forward("/methods", Method.Router)
-    # forward("/books", Book.Router)
+    forward("/books", Book.Router)
+    forward("/authors", Author.Router)
   end
 end

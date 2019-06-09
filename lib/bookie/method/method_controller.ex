@@ -34,13 +34,7 @@ defmodule Bookie.Method.Controller do
     {code, status, msg} =
       case Method.create_method(changeset, Bookie.Repo) do
         {:ok, changeset} ->
-          method_resp = %{
-            id: changeset.id,
-            function: changeset.function,
-            method: changeset.method
-          }
-
-          {201, "success", method_resp}
+          {201, "success", changeset}
 
         {:error, changeset} ->
           error =
@@ -61,14 +55,8 @@ defmodule Bookie.Method.Controller do
     {code, status, msg} =
       with method_struct <- Method.get_method(id),
            changeset <- Method.changeset(method_struct, body_params),
-           {:ok, updated_changeset} <- Method.update_method(changeset, Repo) do
-        method_resp = %{
-          id: updated_changeset.id,
-          function: updated_changeset.function,
-          method: updated_changeset.method
-        }
-
-        {201, "success", method_resp}
+           {:ok, _changeset} <- Method.update_method(changeset, Repo) do
+        {200, "success", "method updated"}
       else
         {:error, changeset} ->
           error =
@@ -89,10 +77,7 @@ defmodule Bookie.Method.Controller do
           {200, "success", "success delete"}
 
         {:error, changeset} ->
-          error =
-            Ecto.Changeset.traverse_errors(changeset, &BookieWeb.ErrorHelpers.translate_error/1)
-
-          {400, "error", error}
+          {400, "error", changeset}
       end
 
     send_response(conn, code, status, msg)
