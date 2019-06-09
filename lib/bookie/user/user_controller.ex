@@ -2,6 +2,8 @@ defmodule Bookie.User.Controller do
   use Bookie, :controller
 
   alias Bookie.User.Model, as: User
+  alias Bookie.Method.Model, as: Method
+  alias Bookie.UserMethod.Model, as: UserMethod
 
   def index(conn, params) do
     send_resp(conn, User.get_user(params["id"]))
@@ -83,6 +85,41 @@ defmodule Bookie.User.Controller do
 
   def delete(conn, params) do
     send_resp(conn, User.delete_user(params["id"]))
+  end
+
+  def user_method_add(conn, params) do
+    user = User.get_user(params["id"])
+    method = Method.get_method(params["method_id"])
+
+    {code, status, msg} =
+      case UserMethod.map_user_method(user, method) do
+        {:ok, _user} ->
+          {200, "success", "Successfully Mapped method with user"}
+
+        {:error, _changeset} ->
+          {400, "failed", "failed to map metho with user"}
+      end
+
+    send_response(conn, code, status, msg)
+  end
+
+  def user_method_remove(conn, params) do
+    # get user with methods
+    user = User.get_user_methods(params["id"])
+    # get method
+    method = Method.get_method(params["method_id"])
+    # remove method with the user
+
+    {code, status, msg} =
+      case UserMethod.delete_user_method(user, method) do
+        {:ok, _user} ->
+          {200, "success", "Successfully delete method from user"}
+
+        {:error, _changeset} ->
+          {400, "failed", "failed to delete method with user"}
+      end
+
+    send_response(conn, code, status, msg)
   end
 
   defp send_resp(conn, res) do

@@ -37,7 +37,11 @@ defmodule Bookie.User.Model do
   This method will return user based on it's id
   """
   def get_user(id) do
-    Repo.get(User, id, preload: Methods) |> Repo.preload(:methods)
+    Repo.get(User, id) |> Repo.preload(:methods)
+  end
+
+  def get_user_methods(id) do
+    Repo.get(User, id) |> Repo.preload(:methods)
   end
 
   @doc """
@@ -79,8 +83,8 @@ defmodule Bookie.User.Model do
     end
   end
 
-  def delete_user(_id) do
-    # delete user
+  def delete_user(id) do
+    Repo.delete(%User{}, id)
   end
 
   defp authenticate(user, password) do

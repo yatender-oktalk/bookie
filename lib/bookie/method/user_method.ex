@@ -17,4 +17,14 @@ defmodule Bookie.UserMethod.Model do
     |> Ecto.Changeset.put_assoc(:methods, user_methods ++ [methods])
     |> Repo.update()
   end
+
+  def delete_user_method(user, methods) do
+    user_methods = user.methods
+
+    user
+    |> Repo.preload(:methods)
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(:methods, user_methods -- [methods])
+    |> Repo.update()
+  end
 end
