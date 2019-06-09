@@ -11,6 +11,9 @@ defmodule BookieWeb.Router do
 
   pipeline :api do
     plug(:accepts, ["json"])
+    plug(Plugs.DBHealthPlug)
+    plug(Plugs.NoAuthPathPlug)
+    plug(Plugs.AuthPlug)
   end
 
   scope "/", BookieWeb do

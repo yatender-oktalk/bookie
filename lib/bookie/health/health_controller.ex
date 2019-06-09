@@ -19,4 +19,13 @@ defmodule Bookie.Health.Controller do
     |> put_resp_content_type("application/json")
     |> send_resp(status, Jason.encode!(%{resp: response}))
   end
+
+  def mysql_health() do
+    try do
+      {:ok, _map} = Ecto.Adapters.SQL.query(Bookie.Repo, "SELECT 1", [])
+      :up
+    rescue
+      _e in DBConnection.ConnectionError -> :down
+    end
+  end
 end

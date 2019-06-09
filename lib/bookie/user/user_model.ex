@@ -104,7 +104,7 @@ defmodule Bookie.User do
   end
 
   def check_user_credentials(params, repo) do
-    user = repo.get_by(User, name: params["name"])
+    user = repo.get_by(User, id: params["id"])
 
     case authenticate(user, params["password"]) do
       true -> {:ok, user}

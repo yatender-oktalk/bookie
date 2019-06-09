@@ -70,7 +70,8 @@ defmodule Bookie.User.Controller do
   # after validation we will put user struct in headers
   def update(conn, %{"id" => id}) do
     # will put user struct here
-    user_struct = User.get_user(id)
+    # we can override also if we create admin user
+    user_struct = conn.assigns[:user]
     body_params = conn.body_params
 
     user_id = user_struct.id
@@ -81,7 +82,7 @@ defmodule Bookie.User.Controller do
            {:ok, changeset_updated} <- User.update(changeset, Bookie.Repo) do
         user_resp = %{
           id: changeset_updated.id,
-          name: changeset_updated.id,
+          name: changeset_updated.name,
           password: changeset_updated.password
         }
 

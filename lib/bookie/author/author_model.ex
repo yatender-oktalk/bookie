@@ -21,7 +21,6 @@ defmodule Bookie.Author do
     |> cast(params, @required_fields, @optional_fields)
     |> validate_required(:firstname)
     |> validate_length(:firstname, min: 2)
-    |> IO.inspect()
   end
 
   def create_author(changeset, repo) do
